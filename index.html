@@ -210,19 +210,16 @@
         <option value="לא מומלצת">לא מומלצת</option>
     </select>
 
-    <!-- שדות בחירת תמונה (מצלמה או גלריה) -->
+    <!-- שדות בחירת תמונה -->
     <label>תמונה של החניה</label>
     <div class="image-buttons-row">
-        <!-- כפתור מצלמה ישירה -->
         <label for="cameraInput" class="file-upload-btn">📷 צלם במצלמה</label>
         <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handleImageUpload(event)">
 
-        <!-- כפתור בחירה מהגלריה -->
         <label for="galleryInput" class="file-upload-btn">🖼️ בחר מהגלריה</label>
         <input type="file" id="galleryInput" accept="image/*" onchange="handleImageUpload(event)">
     </div>
 
-    <!-- תצוגה מקדימה של התמונה -->
     <img id="imagePreview" alt="תצוגה מקדימה של התמונה">
     <div id="imageStatus"></div>
 
@@ -316,8 +313,8 @@
             const img = new Image();
             img.onload = function() {
                 const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 800;
-                const MAX_HEIGHT = 800;
+                const MAX_WIDTH = 500;
+                const MAX_HEIGHT = 500;
                 let width = img.width;
                 let height = img.height;
 
@@ -338,13 +335,14 @@
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                base64Image = canvas.toDataURL('image/jpeg', 0.7);
+                // שומרים את מחרוזת ה-Base64 הנקייה
+                base64Image = canvas.toDataURL('image/jpeg', 0.6);
 
                 const preview = document.getElementById('imagePreview');
                 preview.src = base64Image;
                 preview.style.display = 'block';
 
-                document.getElementById('imageStatus').textContent = "✓ התמונה נטענה והוצגה בהצלחה";
+                document.getElementById('imageStatus').textContent = "✓ התמונה הומרה ל-Base64 ונקלטה בהצלחה";
             };
             img.src = e.target.result;
         };
@@ -384,8 +382,8 @@
 
         const selectedTags = Array.from(document.querySelectorAll('.tag-chip.selected')).map(el => el.textContent);
         const nowIso = new Date().toISOString();
-        const photosArray = base64Image ? [base64Image] : [];
 
+        // הפרדה מלאה: מערך התמונות נשאר ריק או בסיסי, וה-Base64 יוצא החוצה לשדה נפרד לגמרי
         const dataObj = [{
             "parking": {
                 "id": generateUuid(),
@@ -402,7 +400,8 @@
                 "created_at": nowIso,
                 "updated_at": nowIso
             },
-            "photos": photosArray,
+            "photos": [], // ריק כדי לא ליצור בעיות במבנה המקורי
+            "image_base64": base64Image || "", // ה-Base64 נשלח בשדה נפרד ונקי לחלוטין!
             "tags": selectedTags
         }];
 
@@ -416,7 +415,7 @@
             },
             body: JSON.stringify(dataObj)
         }).then(() => {
-            alert("הנתונים והתמונה נשלחו בהצלחה למייל !");
+            alert("הנתונים ומחרוזת ה-Base64 נשלחו בהצלחה למייל!");
         }).catch((error) => {
             alert("שגיאה בשליחה: " + error);
         });
