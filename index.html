@@ -85,7 +85,7 @@
             border-radius: 12px;
             cursor: pointer;
             font-size: 15px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             text-align: center;
             box-sizing: border-box;
             display: block;
@@ -95,6 +95,15 @@
         }
         input[type="file"] {
             display: none;
+        }
+        #imagePreview {
+            display: none;
+            width: 100%;
+            max-height: 180px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid #2F3542;
         }
         .rating-container {
             display: flex;
@@ -197,10 +206,11 @@
         <option value="לא מומלצת">לא מומלצת</option>
     </select>
 
-    <!-- הוספת שדה תמונה -->
+    <!-- הוספת שדה תמונה ותצוגה מקדימה -->
     <label>תמונה של החניה</label>
     <label for="imageInput" class="file-upload-btn">📷 הוסף תמונה (מצלמה / גלריה)</label>
     <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
+    <img id="imagePreview" alt="תצוגה מקדימה של התמונה">
     <div id="imageStatus"></div>
 
     <label>דירוג</label>
@@ -248,7 +258,6 @@
 
         marker = L.marker([currentLat, currentLng], {draggable: true}).addTo(map);
 
-        // עדכון הקואורדינטות כשהמשתמש גורר את הסיכה במפה
         marker.on('dragend', function(event) {
             const position = marker.getLatLng();
             currentLat = position.lat;
@@ -256,7 +265,6 @@
             document.getElementById('locationStatus').textContent = `✓ נבחר מיקום מהמפה (${currentLat.toFixed(4)}, ${currentLng.toFixed(4)})`;
         });
 
-        // לחיצה על המפה מעבירה את הסיכה למיקום שנלחץ
         map.on('click', function(e) {
             currentLat = e.latlng.lat;
             currentLng = e.latlng.lng;
@@ -267,7 +275,6 @@
 
     window.onload = initMap;
 
-    // כפתור GPS שמרכז את המפה על מיקום המשתמש
     function getGpsLocation() {
         const status = document.getElementById('locationStatus');
         if (!navigator.geolocation) {
@@ -288,7 +295,7 @@
         });
     }
 
-    // טיפול בטעינת תמונה, כיווץ אוטומטי והמרתה ל-Base64
+    // טיפול בטעינת תמונה, כיווץ והצגת תצוגה מקדימה
     function handleImageUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -320,9 +327,14 @@
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // המרה ל-JPEG מכווץ (איכות 0.7) כדי למנוע חריגה ממגבלת משקל
                 base64Image = canvas.toDataURL('image/jpeg', 0.7);
-                document.getElementById('imageStatus').textContent = "✓ התמונה כווצה ונטענה בהצלחה";
+
+                // הצגת התמונה בתצוגה מקדימה במסך
+                const preview = document.getElementById('imagePreview');
+                preview.src = base64Image;
+                preview.style.display = 'block';
+
+                document.getElementById('imageStatus').textContent = "✓ התמונה נטענה והוצגה בהצלחה";
             };
             img.src = e.target.result;
         };
@@ -394,7 +406,7 @@
             },
             body: JSON.stringify(dataObj)
         }).then(() => {
-            alert("הנתונים נשלחו בהצלחה למייל !");
+            alert("הנתונים והתמונה נשלחו בהצלחה למייל !");
         }).catch((error) => {
             alert("שגיאה בשליחה: " + error);
         });
