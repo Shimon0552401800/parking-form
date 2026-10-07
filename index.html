@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הוספת חניה - Parking Vault</title>
+    <style>
+        body {
+            background-color: #121418;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: #181B21;
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h2 {
+            text-align: center;
+            color: #FFD21F;
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #A0A5BD;
+        }
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 16px;
+            background: #232731;
+            border: 1px solid #2F3542;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+            height: 90px;
+        }
+        .gps-btn {
+            background-color: #232731;
+            color: #FFD21F;
+            border: 1px dashed #FFD21F;
+            padding: 12px;
+            width: 100%;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .gps-btn:hover {
+            background-color: #2F3542;
+        }
+        .rating-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #555;
+        }
+        .rating-container span.active {
+            color: #FFD21F;
+        }
+        .tags-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .tag-chip {
+            background: #232731;
+            border: 1px solid #2F3542;
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            user-select: none;
+            transition: 0.2s;
+        }
+        .tag-chip.selected {
+            background: #FFD21F;
+            color: #121418;
+            font-weight: bold;
+            border-color: #FFD21F;
+        }
+        .submit-btn {
+            background: #FFD21F;
+            color: #121418;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .submit-btn:hover {
+            background: #e5bc1b;
+        }
+        #locationStatus {
+            font-size: 13px;
+            color: #4CAF50;
+            margin-top: -10px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>הוספת חניה - Parking Vault</h2>
+    
+    <button type="button" class="gps-btn" onclick="getLocation()">
+        📍 קח את המיקום הנוכחי שלי (GPS)
+    </button>
+    <div id="locationStatus"></div>
+
+    <label>שם החניה</label>
+    <input type="text" id="title" placeholder="לדוגמה: ליד העבודה / הבית">
+
+    <label>הערה</label>
+    <textarea id="note" placeholder="הערות או הנחיות הגעה..."></textarea>
+
+    <label>שעות / תנאים</label>
+    <input type="text" id="timeInfo" placeholder="לדוגמה: חינם אחרי 19:00">
+
+    <label>סוג חניה</label>
+    <select id="parkingType">
+        <option value="מגרש">מגרש</option>
+        <option value="חניה פרטית">חניה פרטית</option>
+        <option value="חניה רחוב">חניה רחוב</option>
+        <option value="חניה מקורה">חניה מקורה</option>
+        <option value="כחול לבן">כחול לבן</option>
+    </select>
+
+    <label>מחיר</label>
+    <select id="priceType">
+        <option value="לא ידוע">לא ידוע</option>
+        <option value="חינם">חינם</option>
+        <option value="בתשלום לפי שעה">בתשלום לפי שעה</option>
+        <option value="בתשלום יומי">בתשלום יומי</option>
+        <option value="מנוי חודשי">מנוי חודשי</option>
+    </select>
+
+    <label>סטטוס</label>
+    <select id="status">
+        <option value="טובה">טובה</option>
+        <option value="פנוי">פנוי</option>
+        <option value="תפוס">תפוס</option>
+        <option value="שמור">שמור</option>
+    </select>
+
+    <label>דירוג</label>
+    <div class="rating-container" id="ratingStars">
+        <span onclick="setRating(1)">★</span>
+        <span onclick="setRating(2)">★</span>
+        <span onclick="setRating(3)">★</span>
+        <span onclick="setRating(4)">★</span>
+        <span onclick="setRating(5)">★</span>
+    </div>
+
+    <label>תגיות</label>
+    <div class="tags-grid" id="tagsContainer">
+        <div class="tag-chip" onclick="toggleTag(this)">קל להכנס</div>
+        <div class="tag-chip" onclick="toggleTag(this)">קרוב</div>
+        <div class="tag-chip" onclick="toggleTag(this)">מוסתר</div>
+        <div class="tag-chip" onclick="toggleTag(this)">זול</div>
+        <div class="tag-chip" onclick="toggleTag(this)">חינם</div>
+        <div class="tag-chip" onclick="toggleTag(this)">מעט מקומות</div>
+        <div class="tag-chip" onclick="toggleTag(this)">הרבה מקומות</div>
+        <div class="tag-chip" onclick="toggleTag(this)">קשה להכנס</div>
+        <div class="tag-chip" onclick="toggleTag(this)">ליד הים</div>
+        <div class="tag-chip" onclick="toggleTag(this)">מתאים ביום</div>
+        <div class="tag-chip" onclick="toggleTag(this)">מתאים בלילה</div>
+    </div>
+
+    <button type="button" class="submit-btn" onclick="sendDataToEmail()">שלח נתונים אליי למייל</button>
+</div>
+
+<script>
+    let currentLat = 32.0853;
+    let currentLng = 34.7818;
+    let selectedRating = 0;
+
+    function getLocation() {
+        const status = document.getElementById('locationStatus');
+        if (!navigator.geolocation) {
+            status.textContent = 'הדפדפן שלך לא תומך באיתור מיקום';
+            return;
+        }
+        status.textContent = 'מאתר מיקום...';
+        navigator.geolocation.getCurrentPosition((position) => {
+            currentLat = position.coords.latitude;
+            currentLng = position.coords.longitude;
+            status.textContent = `✓ המיקום נקלט בהצלחה (${currentLat.toFixed(4)}, ${currentLng.toFixed(4)})`;
+        }, () => {
+            status.textContent = 'שגיאה באיתור המיקום, ודא שהרשאת המיקום מאושרת.';
+        });
+    }
+
+    function setRating(stars) {
+        selectedRating = stars;
+        const starElements = document.querySelectorAll('#ratingStars span');
+        starElements.forEach((el, index) => {
+            if (index < stars) {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
+            }
+        });
+    }
+
+    function toggleTag(element) {
+        element.classList.toggle('selected');
+    }
+
+    function generateUuid() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    function sendDataToEmail() {
+        const title = document.getElementById('title').value || 'ללא שם';
+        const note = document.getElementById('note').value;
+        const timeInfo = document.getElementById('timeInfo').value;
+        const parkingType = document.getElementById('parkingType').value;
+        const priceType = document.getElementById('priceType').value;
+        const status = document.getElementById('status').value;
+
+        const selectedTags = Array.from(document.querySelectorAll('.tag-chip.selected')).map(el => el.textContent);
+        const nowIso = new Date().toISOString();
+
+        const dataObj = [{
+            "parking": {
+                "id": generateUuid(),
+                "title": title,
+                "latitude": currentLat,
+                "longitude": currentLng,
+                "accuracy": 100.0,
+                "note": note,
+                "rating": selectedRating * 1.0,
+                "parking_type": parkingType,
+                "price_type": priceType,
+                "time_info": timeInfo,
+                "status": status,
+                "created_at": nowIso,
+                "updated_at": nowIso
+            },
+            "photos": [],
+            "tags": selectedTags
+        }];
+
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbytfLkARgSE16IIuDPKXwzilIBOKv50Dk7mN0GdMlhBNBQzuPX5RAQkxs_L72FKn1P8/exec";
+
+        fetch(scriptUrl, {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(dataObj)
+        }).then(() => {
+            alert("הנתונים נשלחו בהצלחה למייל שלך!");
+        }).catch((error) => {
+            alert("שגיאה בשליחה: " + error);
+        });
+    }
+</script>
+
+</body>
+</html>
