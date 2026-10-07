@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>הוספת חניה - Parking Vault</title>
+    <!-- טעינת ספריות המפות Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         body {
             background-color: #121418;
@@ -25,7 +28,14 @@
         h2 {
             text-align: center;
             color: #FFD21F;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
+        }
+        #map {
+            width: 100%;
+            height: 200px;
+            border-radius: 14px;
+            margin-bottom: 12px;
+            border: 1px solid #2F3542;
         }
         label {
             display: block;
@@ -51,7 +61,7 @@
         .gps-btn {
             background-color: #232731;
             color: #FFD21F;
-            border: 1px dashed #FFD21F;
+            border: 1px solid #FFD21F;
             padding: 12px;
             width: 100%;
             border-radius: 12px;
@@ -116,7 +126,6 @@
         #locationStatus {
             font-size: 13px;
             color: #4CAF50;
-            margin-top: -10px;
             margin-bottom: 16px;
             text-align: center;
         }
@@ -127,8 +136,11 @@
 <div class="container">
     <h2>הוספת חניה - Parking Vault</h2>
     
-    <button type="button" class="gps-btn" onclick="getLocation()">
-        📍 קח את המיקום הנוכחי שלי (GPS)
+    <!-- מפה אינטראקטיבית -->
+    <div id="map"></div>
+
+    <button type="button" class="gps-btn" onclick="getGpsLocation()">
+        📍 השתמש במיקום שלי (GPS)
     </button>
     <div id="locationStatus"></div>
 
@@ -198,8 +210,40 @@
     let currentLat = 32.0853;
     let currentLng = 34.7818;
     let selectedRating = 0;
+    let map, marker;
 
-    function getLocation() {
+    // אתחול המפה בכניסה לעמוד
+    function initMap() {
+        map = L.map('map').setView([currentLat, currentLng], 15);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        marker = L.marker([currentLat, currentLng], {draggable: true}).addTo(map);
+
+        // עדכון הקואורדינטות כשהמשתמש גורר את הסיכה במפה
+        marker.on('dragend', function(event) {
+            const position = marker.getLatLng();
+            currentLat = position.lat;
+            currentLng = position.lng;
+            document.getElementById('locationStatus').textContent = `✓ נבחר מיקום מהמפה (${currentLat.toFixed(4)}, ${currentLng.toFixed(4)})`;
+        });
+
+        // לחיצה על המפה מעבירה את הסיכה למיקום שנלחץ
+        map.on('click', function(e) {
+            currentLat = e.latlng.lat;
+            currentLng = e.latlng.lng;
+            marker.setLatLng([currentLat, currentLng]);
+            document.getElementById('locationStatus').textContent = `✓ נבחר מיקום מהמפה (${currentLat.toFixed(4)}, ${currentLng.toFixed(4)})`;
+        });
+    }
+
+    window.onload = initMap;
+
+    // כפתור GPS שמרכז את המפה על מיקום המשתמש
+    function getGpsLocation() {
         const status = document.getElementById('locationStatus');
         if (!navigator.geolocation) {
             status.textContent = 'הדפדפן שלך לא תומך באיתור מיקום';
@@ -209,6 +253,10 @@
         navigator.geolocation.getCurrentPosition((position) => {
             currentLat = position.coords.latitude;
             currentLng = position.coords.longitude;
+            
+            map.setView([currentLat, currentLng], 17);
+            marker.setLatLng([currentLat, currentLng]);
+            
             status.textContent = `✓ המיקום נקלט בהצלחה (${currentLat.toFixed(4)}, ${currentLng.toFixed(4)})`;
         }, () => {
             status.textContent = 'שגיאה באיתור המיקום, ודא שהרשאת המיקום מאושרת.';
