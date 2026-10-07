@@ -76,16 +76,20 @@
         .gps-btn:hover {
             background-color: #2F3542;
         }
+        .image-buttons-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
         .file-upload-btn {
             background-color: #232731;
             color: #fff;
             border: 1px dashed #A0A5BD;
             padding: 12px;
-            width: 100%;
+            flex: 1;
             border-radius: 12px;
             cursor: pointer;
-            font-size: 15px;
-            margin-bottom: 12px;
+            font-size: 14px;
             text-align: center;
             box-sizing: border-box;
             display: block;
@@ -206,10 +210,19 @@
         <option value="לא מומלצת">לא מומלצת</option>
     </select>
 
-    <!-- הוספת שדה תמונה ותצוגה מקדימה -->
+    <!-- שדות בחירת תמונה (מצלמה או גלריה) -->
     <label>תמונה של החניה</label>
-    <label for="imageInput" class="file-upload-btn">📷 הוסף תמונה (מצלמה / גלריה)</label>
-    <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
+    <div class="image-buttons-row">
+        <!-- כפתור מצלמה ישירה -->
+        <label for="cameraInput" class="file-upload-btn">📷 צלם במצלמה</label>
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handleImageUpload(event)">
+
+        <!-- כפתור בחירה מהגלריה -->
+        <label for="galleryInput" class="file-upload-btn">🖼️ בחר מהגלריה</label>
+        <input type="file" id="galleryInput" accept="image/*" onchange="handleImageUpload(event)">
+    </div>
+
+    <!-- תצוגה מקדימה של התמונה -->
     <img id="imagePreview" alt="תצוגה מקדימה של התמונה">
     <div id="imageStatus"></div>
 
@@ -247,7 +260,6 @@
     let base64Image = null;
     let map, marker;
 
-    // אתחול המפה בכניסה לעמוד
     function initMap() {
         map = L.map('map').setView([currentLat, currentLng], 15);
 
@@ -295,7 +307,6 @@
         });
     }
 
-    // טיפול בטעינת תמונה, כיווץ והצגת תצוגה מקדימה
     function handleImageUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -329,7 +340,6 @@
 
                 base64Image = canvas.toDataURL('image/jpeg', 0.7);
 
-                // הצגת התמונה בתצוגה מקדימה במסך
                 const preview = document.getElementById('imagePreview');
                 preview.src = base64Image;
                 preview.style.display = 'block';
