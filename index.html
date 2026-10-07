@@ -76,6 +76,26 @@
         .gps-btn:hover {
             background-color: #2F3542;
         }
+        .file-upload-btn {
+            background-color: #232731;
+            color: #fff;
+            border: 1px dashed #A0A5BD;
+            padding: 12px;
+            width: 100%;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            margin-bottom: 16px;
+            text-align: center;
+            box-sizing: border-box;
+            display: block;
+        }
+        .file-upload-btn:hover {
+            background-color: #2F3542;
+        }
+        input[type="file"] {
+            display: none;
+        }
         .rating-container {
             display: flex;
             gap: 8px;
@@ -123,7 +143,7 @@
         .submit-btn:hover {
             background: #e5bc1b;
         }
-        #locationStatus {
+        #locationStatus, #imageStatus {
             font-size: 13px;
             color: #4CAF50;
             margin-bottom: 16px;
@@ -156,28 +176,32 @@
     <label>סוג חניה</label>
     <select id="parkingType">
         <option value="מגרש">מגרש</option>
-        <option value="חניה פרטית">חניה פרטית</option>
-        <option value="חניה רחוב">חניה רחוב</option>
-        <option value="חניה מקורה">חניה מקורה</option>
-        <option value="כחול לבן">כחול לבן</option>
+        <option value="רחוב">רחוב</option>
+        <option value="חניון">חניון</option>
+        <option value="פרטי">פרטי</option>
+        <option value="כחול-לבן">כחול-לבן</option>
     </select>
 
     <label>מחיר</label>
     <select id="priceType">
         <option value="לא ידוע">לא ידוע</option>
         <option value="חינם">חינם</option>
-        <option value="בתשלום לפי שעה">בתשלום לפי שעה</option>
-        <option value="בתשלום יומי">בתשלום יומי</option>
-        <option value="מנוי חודשי">מנוי חודשי</option>
+        <option value="בתשלום">בתשלום</option>
+        <option value="כחול-לבן">כחול-לבן</option>
     </select>
 
     <label>סטטוס</label>
     <select id="status">
         <option value="טובה">טובה</option>
-        <option value="פנוי">פנוי</option>
-        <option value="תפוס">תפוס</option>
-        <option value="שמור">שמור</option>
+        <option value="לא בטוח">לא בטוח</option>
+        <option value="לא מומלצת">לא מומלצת</option>
     </select>
+
+    <!-- הוספת שדה תמונה -->
+    <label>תמונה של החניה</label>
+    <label for="imageInput" class="file-upload-btn">📷 הוסף תמונה (מצלמה / גלריה)</label>
+    <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
+    <div id="imageStatus"></div>
 
     <label>דירוג</label>
     <div class="rating-container" id="ratingStars">
@@ -210,6 +234,7 @@
     let currentLat = 32.0853;
     let currentLng = 34.7818;
     let selectedRating = 0;
+    let base64Image = null;
     let map, marker;
 
     // אתחול המפה בכניסה לעמוד
@@ -263,6 +288,19 @@
         });
     }
 
+    // טיפול בטעינת תמונה והמרתה ל-Base64
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                base64Image = e.target.result;
+                document.getElementById('imageStatus').textContent = "✓ התמונה נטענה בהצלחה";
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
     function setRating(stars) {
         selectedRating = stars;
         const starElements = document.querySelectorAll('#ratingStars span');
@@ -296,6 +334,7 @@
 
         const selectedTags = Array.from(document.querySelectorAll('.tag-chip.selected')).map(el => el.textContent);
         const nowIso = new Date().toISOString();
+        const photosArray = base64Image ? [base64Image] : [];
 
         const dataObj = [{
             "parking": {
@@ -313,7 +352,7 @@
                 "created_at": nowIso,
                 "updated_at": nowIso
             },
-            "photos": [],
+            "photos": photosArray,
             "tags": selectedTags
         }];
 
@@ -327,7 +366,7 @@
             },
             body: JSON.stringify(dataObj)
         }).then(() => {
-            alert("הנתונים נשלחו בהצלחה למייל שלך!");
+            alert("הנתונים נשלחו בהצלחה למייל !");
         }).catch((error) => {
             alert("שגיאה בשליחה: " + error);
         });
